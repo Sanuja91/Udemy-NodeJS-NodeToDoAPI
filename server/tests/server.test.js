@@ -198,7 +198,7 @@ describe('GET/users/me', () => {
             .set('x-auth', users[0].tokens[0].token)
             .expect(401)
             .expect(res => {
-                expect(res.body).toEqual([{})
+                expect(res.body).toEqual({})
             })
             .end(done())
     })
