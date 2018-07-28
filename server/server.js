@@ -37,14 +37,33 @@ app.get('/todos/:id', (req, res) => {
             if (!todo)
                 return res.status(404).send('ID not found')
             console.log('Todo by ID', todo)
-            res.status(200).send({todo})
+            res.status(200).send({ todo })
         })
         .catch(err => {
             console.log('Error', err)
             res.status(400).send(`Error ${err}`)
         })
-   
+
 })
+
+app.delete('/todos/:id', (req, res) => {
+    let id = req.params.id
+    if (!ObjectID.isValid(id))
+        return res.status(404).send(`Invalid ID ${id}`)
+
+    Todo.findByIdAndRemove(id)
+        .then(todo => {
+            if (!todo)
+                return res.status(404).send('ID not found')
+            console.log('Removed Todo by ID', todo)
+            res.status(200).send({ todo })
+        })
+        .catch(err => {
+            console.log('Error', err)
+            res.status(400).send(`Error ${err}`)
+        })
+})
+
 app.listen(port, () => {
     console.log(`Started on port ${port}`)
 })
