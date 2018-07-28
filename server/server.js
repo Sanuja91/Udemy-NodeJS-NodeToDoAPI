@@ -35,11 +35,11 @@ app.get('/todos/:id', (req, res) => {
             if (!todo)
                 return res.status(404).send('ID not found')
             console.log('Todo by ID', todo)
-            res.send({todo})
+            res.status(200).send({todo})
         })
         .catch(err => {
             console.log('Error', err)
-            res.send(`Error ${err}`)
+            res.status(400).send(`Error ${err}`)
         })
    
 })
