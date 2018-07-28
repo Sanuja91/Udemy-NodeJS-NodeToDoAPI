@@ -16,7 +16,6 @@ const todos = [
     }
 ]
 
-
 // Runs before of the test cases
 // Clears the Todos database
 // Sometimes shit gets fucked,, doesn't make sense
