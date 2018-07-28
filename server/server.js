@@ -1,3 +1,5 @@
+require('./config/config')
+
 const express = require('express')
 const bodyParser = require('body-parser')
 const { ObjectID } = require('mongodb')
@@ -8,7 +10,6 @@ const { Todo } = require('./models/todo.js')
 const { User } = require('./models/user.js')
 
 const app = express()
-const port = process.env.PORT || 3000
 
 app.use(bodyParser.json())
 
@@ -90,8 +91,8 @@ app.patch('/todos/:id', (req, res) => {
         })
 })
 
-app.listen(port, () => {
-    console.log(`Started on port ${port}`)
+app.listen(process.env.PORT, () => {
+    console.log(`Started on port ${process.env.PORT}`)
 })
 
 module.exports = { app }
