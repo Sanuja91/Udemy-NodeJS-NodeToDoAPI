@@ -81,6 +81,7 @@ UserSchema.statics.findByToken = function (token) {
     })
 }
 
+// Finds user by email address
 UserSchema.statics.findByCredentials = function (email, password) {
     let User = this
     User.findOne({ email })
@@ -99,6 +100,15 @@ UserSchema.statics.findByCredentials = function (email, password) {
         })
 }
 
+// User is signing out.. Delete specfic token
+UserSchema.methods.removeToken = function (token) {
+    let user = this
+    return user.update({
+        $pull: { tokens: { token } }
+    })
+}
+
+// Runs before user schema 'save' function
 UserSchema.pre('save', function (next) {
     let user = this
 

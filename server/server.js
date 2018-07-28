@@ -113,14 +113,22 @@ app.get('/users/me', authenticate, (req, res) => {
 
 app.post('/users/login', (req, res) => {
     let body = _.pick(req.body, ['email', 'password'])
-    User.findByCredentials(body.email,body.password)
-    .then(user=>{
-        user.generateAuthToken()
-        .then(token=>{
-            res.header('x-auth', token).status(200).send(user)
+    User.findByCredentials(body.email, body.password)
+        .then(user => {
+            user.generateAuthToken()
+                .then(token => {
+                    res.header('x-auth', token).status(200).send(user)
+                })
         })
-    })
-    .catch(err=>{
+        .catch(err => {
+            res.status(400).send()
+        })
+})
+
+app.delete('/users/login', authenticate, (req, res) => {
+    req.user.removeToken(req.token).then(() => {
+        res.status(200).send()
+    }, () => {
         res.status(400).send()
     })
 })
