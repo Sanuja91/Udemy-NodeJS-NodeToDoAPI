@@ -41,9 +41,12 @@ UserSchema.methods.toJSON = function () {
 
     return _.pick(userObject, ['_id', 'email'])
 }
-// Adds methods into the Schema
-// Cant use arrow functions here as aarrow function dont hold 'this'
+
+// Adds instance methods into the Schema
+// Cant use arrow functions here as arrow function dont hold 'this' binding
 UserSchema.methods.generateAuthToken = function () {
+
+    // Instance methods get called with the individual document
     let user = this
     let access = 'auth'
     let token = jwt.sign({ _id: user._id.toHexString(), access }, secret).toString()
@@ -55,6 +58,26 @@ UserSchema.methods.generateAuthToken = function () {
         .then(() => {
             return token
         })
+}
+
+// Adds model methods into the Schema
+UserSchema.statics.findByToken = function (token) {
+    // Model methods get called with the model as the 'this' binding
+    let User = this
+    let decoded
+
+    try {
+        decoded = jwt.verify(token, secret)
+    } catch (err) {
+        console.log('Decoding JWT failed')
+       return Promise.reject()
+    }
+
+    return User.findOne({
+        '_id': decoded._id,
+        'tokens.token': token,
+        'tokens.access': 'auth'
+    })
 }
 
 let User = mongoose.model('User', UserSchema)
