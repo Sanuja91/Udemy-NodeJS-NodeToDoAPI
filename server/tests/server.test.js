@@ -19,6 +19,8 @@ const todos = [
 
 // Runs before of the test cases
 // Clears the Todos database
+// Sometimes shit gets fucked,, doesn't make sense
+// Error Uncaught TypeError:Cannot read property call of undefined
 beforeEach((done) => {
     Todo.remove({})
         .then(() => { return Todo.insertMany(todos) })
@@ -92,7 +94,7 @@ describe('GET/todos/:id', () => {
     })
 
     it('should return 404 if todo not found', (done) => {
-       let hexID = new ObjectID().toHexString()
+        let hexID = new ObjectID().toHexString()
         request(app)
             .get(`/todos/${hexID}`)
             .expect(404)
@@ -101,39 +103,51 @@ describe('GET/todos/:id', () => {
 
     it('should return 404 if object ID is invalid', (done) => {
         let hexID = 123
-         request(app)
-             .get(`/todos/${hexID}`)
-             .expect(404)
-             .end(done())
-     })
+        request(app)
+            .get(`/todos/${hexID}`)
+            .expect(404)
+            .end(done())
+    })
 })
 
 describe('DELETE/todos/:id', () => {
-    it('should return deleted todo doc', (done) => {
+    it('should remove a todo', (done) => {
+        let hexID = todos[0]._id.toHexString()
         request(app)
-            .delete(`/todos/${todos[0]._id.toHexString()}`)
+            .delete(`/todos/${hexID}`)
             .expect(200)
             .expect(res => {
-                expect(res.body.todo.text).toBe(todos[0].text)
+                expect(res.body.todo._id).toBe(hexID)
             })
-            .end(done())
+            .end((err, res) => {
+                console.log('ERR', err)
+                if (err)
+                    return done(err)
+                Todo.findById(hexID)
+                    .then(todo => {
+                        expect(todo).toNotExist()
+                        done()
+                    }).catch(err => {
+                        done(err)
+                    })
+            })
     })
 
     it('should return 404 if todo not found', (done) => {
         let hexID = new ObjectID().toHexString()
-         request(app)
-             .delete(`/todos/${hexID}`)
-             .expect(404)
-             .end(done())
-     })
- 
-     it('should return 404 if object ID is invalid', (done) => {
-         let hexID = 123
-          request(app)
-              .delete(`/todos/${hexID}`)
-              .expect(404)
-              .end(done())
-      })
+        request(app)
+            .delete(`/todos/${hexID}`)
+            .expect(404)
+            .end(done())
+    })
+
+    it('should return 404 if object ID is invalid', (done) => {
+        let hexID = 123
+        request(app)
+            .delete(`/todos/${hexID}`)
+            .expect(404)
+            .end(done())
+    })
 
 
 })
