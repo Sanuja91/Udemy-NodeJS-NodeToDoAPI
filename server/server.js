@@ -5,6 +5,7 @@ const bodyParser = require('body-parser')
 const { ObjectID } = require('mongodb')
 const _ = require('lodash')
 
+const { mongoose } = require('./db/mongoose.js')
 const { Todo } = require('./models/todo.js')
 const { User } = require('./models/user.js')
 const { authenticate } = require('./middleware/authenticate')
@@ -13,17 +14,18 @@ const app = express()
 
 app.use(bodyParser.json())
 
-app.post('/todos', (req, res) => {
+app.post('/todos', authenticate, (req, res) => {
     let todo = new Todo({
-        text: req.body.text
+        text: req.body.text,
+        _creator: req.user._id
     })
     todo.save()
         .then(doc => { res.status(200).send(doc) })
         .catch(err => { res.status(400).send(err) })
 })
 
-app.get('/todos', (req, res) => {
-    Todo.find()
+app.get('/todos', authenticate, (req, res) => {
+    Todo.find({ _creator: req.user._id })
         .then(
             todos => { res.send({ todos }) },
             err => { res.status(400).send(err) })
@@ -94,12 +96,14 @@ app.patch('/todos/:id', (req, res) => {
 app.post('/users', (req, res) => {
     let body = _.pick(req.body, ['email', 'password'])
     let user = new User(body)
-
+    console.log('STAGE A')
     user.save()
         .then(() => {
+            console.log('STAGE B')
             return user.generateAuthToken()
         })
         .then(token => {
+            console.log('STAGE C')
             res.header('x-auth', token).status(200).send(user)
         })
         .catch(err => {
@@ -113,8 +117,10 @@ app.get('/users/me', authenticate, (req, res) => {
 
 app.post('/users/login', (req, res) => {
     let body = _.pick(req.body, ['email', 'password'])
+    console.log('STAGE A')
     User.findByCredentials(body.email, body.password)
         .then(user => {
+            console.log('STAGE B')
             user.generateAuthToken()
                 .then(token => {
                     res.header('x-auth', token).status(200).send(user)
