@@ -84,7 +84,7 @@ UserSchema.statics.findByToken = function (token) {
 // Finds user by email address
 UserSchema.statics.findByCredentials = function (email, password) {
     let User = this
-    User.findOne({ email })
+    return User.findOne({ email })
         .then(user => {
             if (!user)
                 return Promise.reject()
