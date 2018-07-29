@@ -50,12 +50,12 @@ app.get('/todos/:id', (req, res) => {
 
 })
 
-app.delete('/todos/:id', (req, res) => {
+app.delete('/todos/:id', authenticate, (req, res) => {
     let id = req.params.id
     if (!ObjectID.isValid(id))
         return res.status(404).send(`Invalid ID ${id}`)
 
-    Todo.findByIdAndRemove(id)
+    Todo.findOneAndRemove({ _id: id, _creator: req.user._id })
         .then(todo => {
             if (!todo)
                 return res.status(404).send('ID not found')
@@ -68,7 +68,7 @@ app.delete('/todos/:id', (req, res) => {
         })
 })
 
-app.patch('/todos/:id', (req, res) => {
+app.patch('/todos/:id', authenticate, (req, res) => {
     let id = req.params.id
     let body = _.pick(req.body, ['text', 'completed'])
 
@@ -82,7 +82,7 @@ app.patch('/todos/:id', (req, res) => {
         body.completedAt = null
     }
 
-    Todo.findByIdAndUpdate(id, { $set: body }, { new: true })
+    Todo.findOneAndUpdate({ _id: id, _creator: req.user._id }, { $set: body }, { new: true })
         .then(todo => {
             if (!todo)
                 return res.status(404).send()
@@ -96,14 +96,11 @@ app.patch('/todos/:id', (req, res) => {
 app.post('/users', (req, res) => {
     let body = _.pick(req.body, ['email', 'password'])
     let user = new User(body)
-    console.log('STAGE A')
     user.save()
         .then(() => {
-            console.log('STAGE B')
             return user.generateAuthToken()
         })
         .then(token => {
-            console.log('STAGE C')
             res.header('x-auth', token).status(200).send(user)
         })
         .catch(err => {
@@ -117,10 +114,8 @@ app.get('/users/me', authenticate, (req, res) => {
 
 app.post('/users/login', (req, res) => {
     let body = _.pick(req.body, ['email', 'password'])
-    console.log('STAGE A')
     User.findByCredentials(body.email, body.password)
         .then(user => {
-            console.log('STAGE B')
             user.generateAuthToken()
                 .then(token => {
                     res.header('x-auth', token).status(200).send(user)
